@@ -3,13 +3,13 @@ import cv2
 import numpy as np
 
 
-def hough(img, threshold=190):
-    thetas = np.deg2rad(np.arange(0, 180, 0.5))
+def hough(img, threshold=236): #250 一条,230,236两条
+    thetas = np.deg2rad(np.arange(0, 180, 2))
     row, cols = img.shape;
     # 图片对角线长度
     diag_len = np.ceil(np.sqrt(row ** 2 + cols ** 2))
-    rhos = np.linspace(0, diag_len, int(diag_len))
-    # rhos = np.linspace(-diag_len, diag_len, int(2 * diag_len))
+    # rhos = np.linspace(0, diag_len, int(diag_len))
+    rhos = np.linspace(-diag_len, diag_len, int(2 * diag_len))
     cos_t = np.cos(thetas)
     sint_t = np.sin(thetas)
     num_thetas = len(thetas)
@@ -18,19 +18,18 @@ def hough(img, threshold=190):
     vote = np.zeros((int(2 * diag_len), num_thetas), dtype=np.uint64)
     y_inx, x_inx = np.nonzero(img)
 
+    # 计数
     for i in range(len(x_inx)):
         x = x_inx[i]
         y = y_inx[i]
         for j in range(num_thetas):
-            rho = round(x * cos_t[j] + y * sint_t[j])
+            rho = round(x * cos_t[j] + y * sint_t[j]) + diag_len
             vote[int(rho), j] += 1
 
+    # 拿到所有大于阈值的 rhos theta
     indeies = np.argwhere(vote > threshold)
     rhos_idx = indeies[:, 0]
     theta_idx = indeies[:, 1]
-    print thetas[theta_idx]
-    # print rhos_idx,theta_idx
-    # print (rhos[rhos_idx])
     return vote, rhos[rhos_idx], thetas[theta_idx]
 
 
@@ -46,22 +45,9 @@ vote = np.uint8(vote.T)
 cv2.imshow("vote", vote)
 
 for rho, theta in zip(rhos, thetas):
-    x1 = int(0)
-    x2 = int(img.shape[1])
-    y_inx, x_inx = np.nonzero(edges)
-    x_list = []
-    # 找到边缘点最合适的坐标
-    for i in range(len(x_inx)):
-        x = x_inx[i]
-        y = y_inx[i]
-        rho_xy = round(x * np.cos(theta) + y * np.sin(theta))
-        if (round(rho) == rho_xy):
-            x_list.append(x)
-    x1 = min(x_list)
-    x2 = max(x_list)
-    # x_center = img.shape[1] / 2
-    # x1 = int(x_center + 50)
-    # x2 = int(x_center - 50)
+    x_center = img.shape[1] / 2
+    x1 = int(x_center + 250)
+    x2 = int(x_center - 250)
     print x1, x2, img.shape
     a = np.sin(theta)
     b = np.cos(theta)
